@@ -1,8 +1,9 @@
 (ns pinger.core
 	(:gen-class)
+	(:use [clojure.tools.logging :only (info error)])
 	(:require [pinger.scheduler :as scheduler])
 	(:import (java.net URL)))
-	
+
 (defn response-code [address]
 	(let [connection (.openConnection (URL. address))]
 	(doto connection
@@ -12,6 +13,11 @@
 
 (defn available? [address]
 	(= 200 (response-code address)))
+
+(defn record-availability [address]
+  (if (available? address)
+    (info (str address "is responding normally"))
+    (error (str address "is not available"))))
 	
 (defn check []
 	(let [addresses '("http://www.somethingofthatilk.com"
@@ -19,7 +25,7 @@
 										"http://google.com/badurl")]
 
 		(doseq [address addresses]
-			(println (available? address)))))
+			(record-availability address))))
 
 (def immediately 0)
 (def every-minute (* 60 1000))
